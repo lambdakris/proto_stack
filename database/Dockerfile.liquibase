@@ -1,0 +1,13 @@
+FROM liquibase/liquibase:4.25
+
+# Use the PostgreSQL driver that's already included with the Liquibase image
+# The official Liquibase image includes the PostgreSQL driver
+
+# Set working directory
+WORKDIR /liquibase
+
+# Copy configuration and changelog files
+COPY --chown=liquibase:liquibase liquibase/ .
+
+# Set default command
+CMD ["update"]
