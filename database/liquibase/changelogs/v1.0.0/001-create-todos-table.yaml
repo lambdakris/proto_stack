@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-todos-table
+      author: system
+      comment: Create the todos table for the todo application
+      changes:
+        - createTable:
+            tableName: todos
+            columns:
+              - column:
+                  name: id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+                  defaultValue: ""
+              - column:
+                  name: completed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_todos_id
+            tableName: todos
+            columns:
+              - column:
+                  name: id
+        - createIndex:
+            indexName: idx_todos_title
+            tableName: todos
+            columns:
+              - column:
+                  name: title
+      rollback:
+        - dropTable:
+            tableName: todos

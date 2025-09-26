@@ -1,0 +1,21 @@
+services:
+  # Run Liquibase migrations automatically in development
+  migration-runner:
+    image: liquibase/liquibase:4.25
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/todoapp
+      LIQUIBASE_COMMAND_USERNAME: postgres
+      LIQUIBASE_COMMAND_PASSWORD: password
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: db.changelog-master.yaml
+    volumes:
+      - ./database/liquibase/changelogs:/liquibase/changelog
+    command: ["update"]
+    restart: "no"
+
+  backend:
+    depends_on:
+      - migration-runner
+      - postgres

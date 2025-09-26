@@ -7,6 +7,7 @@ A minimal full stack Todo application using Streamlit for the frontend, FastAPI 
 - **Frontend**: Streamlit (Python web app framework)
 - **Backend**: FastAPI (Python web API framework)
 - **Database**: PostgreSQL
+- **Schema Migration**: Liquibase for versioned database changes
 - **Orchestration**: Docker Compose
 - **Debugging**: VS Code with Python debugger support
 
@@ -27,6 +28,32 @@ A minimal full stack Todo application using Streamlit for the frontend, FastAPI 
    - API Documentation: http://localhost:8000/docs
 
 ## Development & Debugging
+
+### Database Migrations
+
+The project uses Liquibase for database schema management. Database changes are versioned and applied through migration files.
+
+**Migration Commands:**
+
+```bash
+# Apply all pending migrations
+./scripts/migrate.sh update
+
+# Check migration status
+./scripts/migrate.sh status
+
+# Validate changelog files
+./scripts/migrate.sh validate
+
+# Rollback last N migrations
+./scripts/migrate.sh rollback-count <count>
+```
+
+**Migration workflow:**
+1. Create new migration files in `database/liquibase/changelogs/vX.X.X/`
+2. Update the master changelog to include new migration files
+3. Run `./scripts/migrate.sh update` to apply changes
+4. The backend service automatically waits for migrations to complete
 
 ### VS Code Setup
 
@@ -80,11 +107,20 @@ proto_stack/
 │   ├── requirements.txt   # Python dependencies
 │   └── Dockerfile         # Frontend container config
 ├── database/              # Database configuration
-│   └── init.sql          # Database initialization
+│   ├── init.sql          # Database initialization
+│   ├── Dockerfile.liquibase # Liquibase container config
+│   └── liquibase/        # Liquibase migration files
+│       ├── liquibase.properties
+│       └── changelogs/   # Database changelog files
+│           ├── db.changelog-master.yaml
+│           └── v1.0.0/   # Version-specific migrations
+├── scripts/              # Utility scripts
+│   └── migrate.sh       # Database migration script
 ├── .vscode/              # VS Code configuration
 │   ├── launch.json       # Debug configurations
 │   └── tasks.json        # Build tasks
 ├── docker-compose.yml    # Docker Compose orchestration
+├── docker-compose.override.yml # Development overrides
 ├── .env                  # Environment variables
 └── README.md            # This file
 ```
@@ -105,6 +141,7 @@ The FastAPI backend provides the following REST endpoints:
 - ✅ Mark todos as complete/incomplete
 - ✅ Real-time updates between frontend and backend
 - ✅ PostgreSQL persistence
+- ✅ **Liquibase schema migration for versioned database changes**
 - ✅ Docker containerization
 - ✅ VS Code debugging support
 - ✅ Hot reload for development
@@ -126,6 +163,12 @@ Here's the application in action with multiple todos, showing the complete/incom
 **Database connection issues**:
 - Ensure PostgreSQL container is healthy: `docker-compose ps`
 - Check database logs: `docker-compose logs postgres`
+
+**Database migration issues**:
+- Check migration status: `./scripts/migrate.sh status`
+- Validate migration files: `./scripts/migrate.sh validate`
+- View migration logs: `docker-compose logs migration-runner`
+- For manual migration: `docker compose --profile migration run --rm liquibase update`
 
 **Port conflicts**:
 - Make sure ports 8000, 8501, and 5432 are not in use by other applications

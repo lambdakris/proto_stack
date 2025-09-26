@@ -45,8 +45,8 @@ class Todo(BaseModel):
     class Config:
         orm_mode = True
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Note: Tables are now managed by Liquibase migrations
+# Base.metadata.create_all(bind=engine) - Removed in favor of Liquibase
 
 # FastAPI app
 app = FastAPI(title="Todo API", version="1.0.0")
