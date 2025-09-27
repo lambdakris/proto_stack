@@ -1,0 +1,26 @@
+[project]
+name = "proto-stack"
+version = "1.0.0"
+description = "A minimal full stack Todo application using Streamlit, FastAPI, and PostgreSQL"
+readme = "README.md"
+authors = [
+    {name = "Proto Stack Team"}
+]
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.workspace]
+members = ["backend", "frontend"]
+
+[tool.uv]
+dev-dependencies = []
+
+# UV configuration for better Python development experience
+[tool.uv.pip]
+index-strategy = "unsafe-best-match"
+
+[tool.uv.resolution]
+prerelease = "disallow"
