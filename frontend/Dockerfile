@@ -1,18 +1,22 @@
-FROM python:3.11-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
+# Set the working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies if needed
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Try UV first, fallback to pip
-COPY pyproject.toml requirements.txt* ./
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org uv && \
-    uv pip install --system -r pyproject.toml || \
-    pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
+# Copy project configuration
+COPY pyproject.toml ./
 
+# Install dependencies using UV with increased timeout and retries
+ENV UV_HTTP_TIMEOUT=300
+ENV UV_INSTALL_RETRIES=5
+RUN uv pip install --system -r pyproject.toml
+
+# Copy the rest of the project source code
 COPY . .
 
 EXPOSE 8501

@@ -27,21 +27,7 @@ This project uses [UV](https://docs.astral.sh/uv/) for Python package management
 - `backend/pyproject.toml`: Backend dependencies (FastAPI, SQLAlchemy, etc.)
 - `frontend/pyproject.toml`: Frontend dependencies (Streamlit, requests, etc.)
 
-### Local Development with UV:
 
-```bash
-# Install UV (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies for both backend and frontend
-uv sync
-
-# Run backend locally
-cd backend && uv run uvicorn main:app --reload
-
-# Run frontend locally  
-cd frontend && uv run streamlit run app.py
-```
 
 ## Quick Start
 
