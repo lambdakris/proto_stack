@@ -1,24 +1,23 @@
 FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
+# Disable file validation for the debugger
+ENV PYDEVD_DISABLE_FILE_VALIDATION=1
+
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies if needed
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install curl for healthcheck
+RUN apt-get update \
+    && apt-get install -y curl \
+	&& rm -rf /var/lib/apt/lists/*
+    
+# Copy the project files
+COPY uv.lock frontend/pyproject.toml ./
 
-# Copy project configuration
-COPY pyproject.toml ./
-
-# Install dependencies using UV with increased timeout and retries
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_INSTALL_RETRIES=5
-RUN uv pip install --system -r pyproject.toml
+# Install the project dependencies
+RUN uv sync
 
 # Copy the rest of the project source code
-COPY . .
+COPY frontend/ ./
 
-EXPOSE 8501
-
-CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+CMD ["uv", "run", "streamlit", "run", "main.py", "--server.address", "0.0.0.0", "--server.port", "80"]
