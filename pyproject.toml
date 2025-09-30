@@ -1,0 +1,13 @@
+[project]
+name = "proto-stack"
+version = "1.0.0"
+description = "A minimal full stack Todo application using Streamlit, FastAPI, and PostgreSQL"
+readme = "README.md"
+authors = [
+    {name = "Proto Stack Team"}
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["backend", "frontend"]

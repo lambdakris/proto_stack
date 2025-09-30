@@ -1,0 +1,17 @@
+[project]
+name = "proto-stack-backend"
+version = "1.0.0"
+description = "FastAPI backend for Proto Stack Todo application"
+readme = "README.md"
+authors = [
+    {name = "Proto Stack Team"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]",
+    "psycopg2-binary",
+    "python-dotenv",
+    "debugpy",
+    "sqlalchemy>=2.0.43",
+    "pydantic>=2.11.9",
+]

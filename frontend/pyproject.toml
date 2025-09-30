@@ -1,0 +1,15 @@
+[project]
+name = "proto-stack-frontend"
+version = "1.0.0"
+description = "Streamlit frontend for Proto Stack Todo application"
+readme = "README.md"
+authors = [
+    {name = "Proto Stack Team"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit",
+    "requests",
+    "python-dotenv",
+    "debugpy",
+]

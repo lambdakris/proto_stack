@@ -8,8 +8,26 @@ A minimal full stack Todo application using Streamlit for the frontend, FastAPI 
 - **Backend**: FastAPI (Python web API framework)
 - **Database**: PostgreSQL
 - **Schema Migration**: Liquibase for versioned database changes
+- **Package Management**: UV for Python project and dependency management
 - **Orchestration**: Docker Compose
 - **Debugging**: VS Code with Python debugger support
+
+## Package Management with UV
+
+This project uses [UV](https://docs.astral.sh/uv/) for Python package management, providing benefits over traditional pip/venv workflows:
+
+- **Fast dependency resolution and installation**
+- **Built-in Python version management**
+- **Project-based dependency management with pyproject.toml**
+- **Workspace support for monorepos**
+- **Better lockfile handling**
+
+### Project Structure:
+- Root `pyproject.toml`: Workspace configuration
+- `backend/pyproject.toml`: Backend dependencies (FastAPI, SQLAlchemy, etc.)
+- `frontend/pyproject.toml`: Frontend dependencies (Streamlit, requests, etc.)
+
+
 
 ## Quick Start
 
@@ -100,11 +118,13 @@ docker compose build frontend
 proto_stack/
 ├── backend/                 # FastAPI backend
 │   ├── main.py             # FastAPI application
-│   ├── requirements.txt    # Python dependencies
+│   ├── pyproject.toml      # Python dependencies (UV format)
+│   ├── requirements.txt    # Python dependencies (fallback)
 │   └── Dockerfile          # Backend container config
 ├── frontend/               # Streamlit frontend
 │   ├── app.py             # Streamlit application
-│   ├── requirements.txt   # Python dependencies
+│   ├── pyproject.toml      # Python dependencies (UV format) 
+│   ├── requirements.txt   # Python dependencies (fallback)
 │   └── Dockerfile         # Frontend container config
 ├── database/              # Database configuration
 │   ├── init.sql          # Database initialization
@@ -121,6 +141,7 @@ proto_stack/
 │   └── tasks.json        # Build tasks
 ├── docker-compose.yml    # Docker Compose orchestration
 ├── docker-compose.override.yml # Development overrides
+├── pyproject.toml        # UV workspace configuration
 ├── .env                  # Environment variables
 └── README.md            # This file
 ```
