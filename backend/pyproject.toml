@@ -9,8 +9,9 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]",
-    "sqlalchemy",
     "psycopg2-binary",
     "python-dotenv",
-    "debugpy"
+    "debugpy",
+    "sqlalchemy>=2.0.43",
+    "pydantic>=2.11.9",
 ]
