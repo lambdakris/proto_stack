@@ -4,9 +4,12 @@ A minimal full stack Todo application using Streamlit for the frontend, FastAPI 
 
 ## Features
 
+### Functional
 - ✅ Create, read, update, delete (CRUD) operations for todos
 - ✅ Mark todos as complete/incomplete
 - ✅ Real-time updates between frontend and backend
+
+### Technical
 - ✅ PostgreSQL persistence with Liquibase schema migration for versioned database changes
 - ✅ Docker containerization with Docker Compose orchestration
 - ✅ VS Code debugging support with debugpy
@@ -21,31 +24,25 @@ The following tools and services are needed to work on this project:
 - **Git** - Version control system
 - **VS Code** - Recommended code editor with debugging support
 - **Docker Desktop** - Container runtime and orchestration
-- **UV** (optional) - Fast Python package manager (only needed for local development outside Docker)
-- **GitHub CLI** (optional) - For interacting with GitHub from the command line
-- **GitHub Account** (optional) - For contributing to the repository
-- **Azure CLI** (optional) - Not currently required for this project
-- **Azure Account** (optional) - Not currently required for this project
-
-**Minimum required:** Git, VS Code, and Docker Desktop
-
-
+- **UV** - Python project and package manager
+- **GitHub CLI** - For interacting with GitHub from the command line
+- **GitHub Account** - For contributing to the repository
+- **Azure CLI** - Coming soon...
+- **Azure Account** - Coming soon...
 
 ## Quickstart
 
-The following sections get you quickly up to speed on editing, running, and debugging the application.
+The following sections will quickly get you editing, running, and debugging the application.
 
 ### Editing
 
-To get started with development, follow these steps to acquire the code and open it in your editor:
-
-1. **Clone the repository**:
+1. **Clone repository**:
    ```bash
    git clone https://github.com/lambdakris/proto_stack.git
    cd proto_stack
    ```
 
-2. **Sync dependencies** (optional, only needed for local development outside Docker):
+2. **Restore dependencies**:
    ```bash
    uv sync
    ```
@@ -58,73 +55,86 @@ To get started with development, follow these steps to acquire the code and open
 
 ### Running
 
-To run the application from VS Code using Docker Compose:
-
-1. **Using VS Code Command Palette**:
+1. **Run Application using VS Code and Docker Compose**:
    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-   - Type "Tasks: Run Task"
-   - Select "Docker Compose Up"
+   - Type and Select "Docker Compose Up"
 
-2. **Using Terminal**:
-   ```bash
-   docker compose up --build
-   ```
-
-**What's happening behind the scenes:**
-
-When you run the application, Docker Compose orchestrates multiple containers in sequence:
-
-- **tasks.json**: VS Code task configuration that defines the `Docker Compose Up` command
-- **Build phase** (runs in parallel where possible):
-  - Builds the PostgreSQL container from the official `postgres:17` image
-  - Builds the Liquibase container from `liquibase/liquibase:4.25` image
-  - Builds the backend container from `backend/Dockerfile` using UV to install FastAPI dependencies
-  - Builds the frontend container from `frontend/Dockerfile` using UV to install Streamlit dependencies
-  
-- **Run phase** (runs in sequence based on dependencies):
-  1. **PostgreSQL container** starts first and waits for health check (postgres ready)
-  2. **Liquibase container** runs once postgres is healthy, applies database migrations, then exits
-  3. **Backend container** starts after migrations complete successfully, exposing:
-     - Port 8000: FastAPI application
-     - Port 5678: Debugpy debug server
-  4. **Frontend container** starts after backend is healthy, exposing:
-     - Port 8501: Streamlit application
-     - Port 5679: Debugpy debug server
-
-3. **Access the application**:
+2. **Access the Application**:
    - Frontend (Streamlit): http://localhost:8501
-   - Backend API (FastAPI): http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
+   - Backend (FastAPI): http://localhost:8000
+
+3. **Behind the Scenes:**
+    - VS Code uses the `Docker Compose Up` task configured in tasks.json. 
+    - Docker Compose builds and runs the services defined in `docker-compose.yaml`.
+      1. **PostgreSQL container** starts first and waits for health check (postgres ready)
+      2. **Liquibase container** runs once postgres is healthy, applies database migrations, then exits
+      3. **Backend container** starts after migrations complete successfully, exposing:
+          - Port 8000: FastAPI application
+          - Port 5678: Debugpy debug server
+      4. **Frontend container** starts after backend is healthy, exposing:
+          - Port 8501: Streamlit application
+          - Port 5679: Debugpy debug server
 
 ### Debugging
 
-To debug the application from VS Code with the debugger attached to containers:
-
-1. **Start the stack** using the steps in the [Running](#running) section above
+1. **Start the stack** 
+    - Use the steps in the [Running](#running) section above
 
 2. **Attach the debugger**:
    - Open the Run and Debug view (`Ctrl+Shift+D` or `Cmd+Shift+D` on Mac)
    - Select one of the debug configurations:
-     - `Debug Backend (FastAPI)` - Attaches to backend on port 5678
-     - `Debug Frontend (Streamlit)` - Attaches to frontend on port 5679
-     - `Debug Full Stack` - Attaches to both services simultaneously
+     - `Debug Full Stack` - Attaches to both frontend and backend services
+     - `Debug Backend (FastAPI)` - Attaches to backend service on port 5678
+     - `Debug Frontend (Streamlit)` - Attaches to frontend service on port 5679
    - Press F5 or click the green play button
 
-3. **Set breakpoints**: Click in the gutter next to line numbers in your Python code (`backend/main.py` or `frontend/main.py`) to set breakpoints
+3. **Set breakpoints**: 
+    - Click in the gutter next to line numbers in your Python code (`backend/main.py` or `frontend/main.py`) to set breakpoints
 
-4. **Trigger your code**: Interact with the application through the browser, and the debugger will pause at your breakpoints
+4. **Trigger your code**: 
+    - Interact with the application through the browser, and the debugger will pause at your breakpoints
 
-**What's happening behind the scenes:**
+5. **Behind the scenes:**
+    - **launch.json**: VS Code debug configuration that defines how to attach to remote debug servers
+    - The docker-compose.yml is configured to run both backend and frontend with debugpy:
+      - Backend: `uv run -m debugpy --listen 0.0.0.0:5678 -m fastapi dev main.py`
+      - Frontend: `uv run -m debugpy --listen 0.0.0.0:5679 -m streamlit run main.py`
+    - These debugpy servers wait for VS Code to attach on ports 5678 and 5679
+    - Once attached, VS Code maps local source files to container paths using `pathMappings`
+    - You can step through code, inspect variables, and evaluate expressions
 
-- **launch.json**: VS Code debug configuration that defines how to attach to remote debug servers
-- The docker-compose.yml is configured to run both backend and frontend with debugpy:
-  - Backend: `uv run -m debugpy --listen 0.0.0.0:5678 -m fastapi dev main.py`
-  - Frontend: `uv run -m debugpy --listen 0.0.0.0:5679 -m streamlit run main.py`
-- These debugpy servers wait for VS Code to attach on ports 5678 and 5679
-- Once attached, VS Code maps local source files to container paths using `pathMappings`
-- You can step through code, inspect variables, and evaluate expressions
+## Project Structure
 
-## Architecture
+```
+proto_stack/
+├── backend/                        # FastAPI backend
+│   ├── main.py                     # FastAPI application
+│   ├── pyproject.toml              # Python dependencies (UV format)
+│   └── Dockerfile                  # Backend container config
+├── frontend/                       # Streamlit frontend
+│   ├── app.py                      # Streamlit application
+│   ├── pyproject.toml              # Python dependencies (UV format) 
+│   └── Dockerfile                  # Frontend container config
+├── database/                       # Database configuration
+│   ├── init.sql                    # Database initialization
+│   ├── Dockerfile.liquibase        # Liquibase container config
+│   └── liquibase/                  # Liquibase migration files
+│       ├── liquibase.properties
+│       └── changelogs/             # Database changelog files
+│           ├── db.changelog-master.yaml
+│           └── v1.0.0/             # Version-specific migrations
+├── scripts/                        # Utility scripts
+│   └── migrate.sh                  # Database migration script
+├── .vscode/                        # VS Code configuration
+│   ├── launch.json                 # Debug configurations
+│   └── tasks.json                  # Build tasks
+├── docker-compose.yml              # Docker Compose orchestration
+├── pyproject.toml                  # UV workspace configuration
+├── .env                            # Environment variables
+└── README.md                       # This file
+```
+
+## Project Architecture
 
 This application follows a modern full-stack architecture with clear separation of concerns:
 
@@ -196,45 +206,31 @@ This project uses [UV](https://docs.astral.sh/uv/) for Python package management
 - **Better lockfile handling** - `uv.lock` ensures reproducible builds
 - **Compatible with pip** - Can read `requirements.txt` as fallback
 
-### Project Structure
+### Dependency Files
 
 - **Root `pyproject.toml`**: Workspace configuration that includes backend and frontend
 - **`backend/pyproject.toml`**: Backend dependencies (FastAPI, SQLAlchemy, psycopg2, etc.)
 - **`frontend/pyproject.toml`**: Frontend dependencies (Streamlit, requests, etc.)
 - **`uv.lock`**: Locked versions of all dependencies across the workspace
 
-### Common UV Commands
+### Common Commands
 
-**Install dependencies:**
+**Restore dependencies:**
 ```bash
-# Install all workspace dependencies
 uv sync
-
-# Install dependencies for a specific workspace member
-cd backend
-uv sync
-
-# Install with specific groups (e.g., dev dependencies)
-uv sync --group dev
 ```
 
-**Add new dependencies:**
+**Add dependencies:**
 ```bash
 # Add a package to backend
-cd backend
-uv add fastapi-users
-
-# Add a dev dependency
-uv add --dev pytest
-
-# Add with specific version
-uv add "pydantic>=2.0"
+cd <workspace>
+uv add <package>
 ```
 
 **Remove dependencies:**
 ```bash
-cd backend
-uv remove package-name
+cd <workspace>
+uv remove <package>
 ```
 
 **Update dependencies:**
@@ -243,48 +239,16 @@ uv remove package-name
 uv lock --upgrade
 
 # Update specific package
-uv lock --upgrade-package fastapi
+uv lock --upgrade-package <package>
 ```
 
-**Run commands in the UV environment:**
+**Run scripts and modules:**
 ```bash
-# Run a Python script
-uv run python script.py
+# Run a script
+uv run <script> <args...>
 
 # Run a module
-uv run -m pytest
-
-# Run an installed command
-uv run fastapi dev main.py
-```
-
-### Workflow Scenarios
-
-**Scenario 1: Starting fresh on a new machine**
-```bash
-git clone <repository-url>
-cd proto_stack
-uv sync  # Installs everything from uv.lock
-```
-
-**Scenario 2: Adding a new feature that needs a package**
-```bash
-cd backend
-uv add httpx  # Adds httpx to backend/pyproject.toml and updates uv.lock
-git add backend/pyproject.toml uv.lock
-git commit -m "Add httpx for external API calls"
-```
-
-**Scenario 3: Updating to fix a security vulnerability**
-```bash
-uv lock --upgrade-package vulnerable-package
-docker compose build  # Rebuild containers with updated dependencies
-```
-
-**Scenario 4: Running backend tests locally**
-```bash
-cd backend
-uv run pytest tests/
+uv run -m <module> <args...>
 ```
 
 ## Container Orchestration with Docker
@@ -304,11 +268,11 @@ The `docker-compose.yml` defines four services:
 
 **Start all services:**
 ```bash
-# Build and start in foreground (see logs)
+# Build and start in foreground
 docker compose up --build
 
-# Start in background (detached mode)
-docker compose up -d --build
+# Build and start in background
+docker compose up --build -d
 
 # Start without rebuilding
 docker compose up
@@ -316,13 +280,13 @@ docker compose up
 
 **Stop services:**
 ```bash
-# Stop all services (keeps containers)
+# Stop services (keep containers)
 docker compose stop
 
-# Stop and remove containers
+# Stop services and remove containers
 docker compose down
 
-# Stop, remove containers, and remove volumes (deletes database data)
+# Stop services, remove containers, and remove volumes (deletes database data)
 docker compose down -v
 ```
 
@@ -385,23 +349,10 @@ docker stats
 docker stats $(docker compose ps -q)
 ```
 
-### Workflow Scenarios
-
-**Scenario 1: Fresh start after pulling changes**
-```bash
-docker compose down        # Stop and remove old containers
-docker compose up --build  # Rebuild with new code and start
-```
-
 **Scenario 2: Database is misbehaving, need clean slate**
 ```bash
 docker compose down -v     # Remove containers and volumes
 docker compose up --build  # Start fresh with new database
-```
-
-**Scenario 3: Testing backend changes without rebuilding frontend**
-```bash
-docker compose up --build backend  # Only rebuild backend
 ```
 
 **Scenario 4: Debugging database issues**
@@ -430,24 +381,6 @@ docker system prune
 # Full cleanup (careful: removes everything)
 docker system prune -a --volumes
 ```
-
-### Container Build Process
-
-Each service's Dockerfile describes how to build its container:
-
-**Backend/Frontend Dockerfiles:**
-1. Start from `ghcr.io/astral-sh/uv:python3.11-bookworm-slim` base image
-2. Set working directory to `/app`
-3. Install curl for health checks
-4. Copy `uv.lock` and `pyproject.toml` 
-5. Run `uv sync` to install dependencies
-6. Copy application source code
-7. Set CMD to run the application with debugpy
-
-**Benefits of this approach:**
-- Layer caching: Dependencies are cached separately from source code
-- Fast rebuilds: Only source code layer rebuilds when you change code
-- Consistent environment: Same Python version and dependencies everywhere
 
 ## Schema Management with Liquibase
 
@@ -633,15 +566,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-              - column:
-                  name: email
-                  type: varchar(100)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: created_at
-                  type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
 EOF
 
 # Update master changelog and apply
@@ -658,54 +582,6 @@ vim database/liquibase/changelogs/db.changelog-master.yaml
 5. **One change per changeSet** - Makes it easier to track and rollback
 6. **Use preconditions** - Add checks to prevent invalid migrations
 7. **Document complex changes** - Add comments explaining why changes were made
-
-## Project Structure
-
-```
-proto_stack/
-├── backend/                 # FastAPI backend
-│   ├── main.py             # FastAPI application
-│   ├── pyproject.toml      # Python dependencies (UV format)
-│   ├── requirements.txt    # Python dependencies (fallback)
-│   └── Dockerfile          # Backend container config
-├── frontend/               # Streamlit frontend
-│   ├── app.py             # Streamlit application
-│   ├── pyproject.toml      # Python dependencies (UV format) 
-│   ├── requirements.txt   # Python dependencies (fallback)
-│   └── Dockerfile         # Frontend container config
-├── database/              # Database configuration
-│   ├── init.sql          # Database initialization
-│   ├── Dockerfile.liquibase # Liquibase container config
-│   └── liquibase/        # Liquibase migration files
-│       ├── liquibase.properties
-│       └── changelogs/   # Database changelog files
-│           ├── db.changelog-master.yaml
-│           └── v1.0.0/   # Version-specific migrations
-├── scripts/              # Utility scripts
-│   └── migrate.sh       # Database migration script
-├── .vscode/              # VS Code configuration
-│   ├── launch.json       # Debug configurations
-│   └── tasks.json        # Build tasks
-├── docker-compose.yml    # Docker Compose orchestration
-├── docker-compose.override.yml # Development overrides
-├── pyproject.toml        # UV workspace configuration
-├── .env                  # Environment variables
-└── README.md            # This file
-```
-
-## API Endpoints
-
-The FastAPI backend provides the following REST endpoints:
-
-- `GET /` - Health check endpoint, returns `{"message": "Todo API is running"}`
-- `GET /todos` - List all todos
-- `POST /todos` - Create a new todo
-  - Body: `{"title": "string", "description": "string"}`
-- `PUT /todos/{id}` - Update a todo
-  - Body: `{"title": "string", "description": "string", "completed": boolean}` (all fields optional)
-- `DELETE /todos/{id}` - Delete a todo
-
-Interactive API documentation is available at http://localhost:8000/docs when the backend is running.
 
 ## Common Issues and Troubleshooting
 
@@ -916,17 +792,3 @@ When encountering any issue:
    environment:
      LOG_LEVEL: DEBUG
    ```
-
-## Screenshots
-
-### Application Interface
-
-The Streamlit frontend provides a clean, intuitive interface for managing todos:
-
-![Todo App Interface](https://github.com/user-attachments/assets/d2fcd64e-83e7-4e49-8bdf-a86bdcdbb1ac)
-
-### Working Application
-
-Here's the application in action with multiple todos, showing the complete/incomplete functionality:
-
-![Todo App Working](https://github.com/user-attachments/assets/dcece8b5-6d21-41ac-acd8-f407f8d855be)
