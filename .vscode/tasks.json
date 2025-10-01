@@ -16,38 +16,10 @@
             "problemMatcher": []
         },
         {
-            "label": "Docker Compose Up (Debug Mode)",
-            "type": "shell",
-            "command": "docker",
-            "args": ["compose", "-f", "docker-compose.debug.yml", "up", "--build"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "Docker Compose Down",
             "type": "shell",
             "command": "docker",
             "args": ["compose", "down"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "Docker Compose Down (Debug)",
-            "type": "shell",
-            "command": "docker",
-            "args": ["compose", "-f", "docker-compose.debug.yml", "down"],
             "group": "build",
             "presentation": {
                 "echo": true,
