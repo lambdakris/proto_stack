@@ -39,6 +39,8 @@ services:
       dockerfile: ./backend/Dockerfile
     environment:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/todoapp
+    env_file:
+      - ./.env
     ports:
       - "8000:8000"  # Serving port
       - "5678:5678"  # Debugging port
