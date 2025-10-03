@@ -123,3 +123,5 @@ def show():
                             st.rerun()
                 
                 st.divider()
+
+show()
