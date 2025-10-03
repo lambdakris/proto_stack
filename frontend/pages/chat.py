@@ -17,21 +17,35 @@ def display_chat_messages():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-def get_assistant_response(user_message):
+def get_assistant_response_stream(user_message):
     """
-    Call the backend API to get AI assistant response.
+    Call the backend API to get streaming AI assistant response.
+    Returns a generator that yields response chunks.
     """
     try:
         payload = {"message": user_message}
-        response = requests.post(f"{API_BASE_URL}/chat", json=payload)
+        response = requests.post(
+            f"{API_BASE_URL}/chat", 
+            json=payload,
+            stream=True,
+            headers={"Accept": "text/event-stream"}
+        )
+        
         if response.status_code == 200:
-            return response.json()["response"]
+            # Stream the response
+            for line in response.iter_lines():
+                if line:
+                    line = line.decode('utf-8')
+                    if line.startswith('data: '):
+                        import json
+                        data = json.loads(line[6:])  # Remove 'data: ' prefix
+                        yield data['content']
         else:
             st.error(f"Failed to get response: {response.status_code}")
-            return "I apologize, but I'm having trouble responding right now. Please try again."
+            yield "I apologize, but I'm having trouble responding right now. Please try again."
     except requests.exceptions.RequestException as e:
         st.error(f"Connection error: {e}")
-        return "I apologize, but I'm having trouble connecting to the backend. Please try again."
+        yield "I apologize, but I'm having trouble connecting to the backend. Please try again."
 
 def handle_user_input():
     """Handle new user input from chat input widget"""
@@ -43,11 +57,10 @@ def handle_user_input():
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Generate and display assistant response
+        # Generate and display assistant response with streaming
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                response = get_assistant_response(prompt)
-            st.markdown(response)
+            # Use st.write_stream to display streaming response
+            response = st.write_stream(get_assistant_response_stream(prompt))
         
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})

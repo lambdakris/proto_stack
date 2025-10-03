@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Annotated
 from typing_extensions import TypedDict
@@ -6,6 +7,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 import os
+import json
 
 # Router setup
 router = APIRouter(
@@ -24,12 +26,13 @@ class ChatResponse(BaseModel):
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-# Initialize the LLM
+# Initialize the LLM with streaming enabled
 llm = ChatOpenAI(
     model="gpt-4.1-mini",
     base_url=os.environ["OPENAI_BASE_URL"],
     api_key=os.environ["OPENAI_API_KEY"],
-    temperature=0.7
+    temperature=0.7,
+    streaming=True
 )
 
 # Define the chatbot node
@@ -46,20 +49,38 @@ graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile()
 
-@router.post("", response_model=ChatResponse)
+@router.post("")
 async def chat(message: ChatMessage):
     """
-    Chat endpoint that provides AI assistant responses using LangGraph and OpenAI.
+    Chat endpoint that provides streaming AI assistant responses using LangGraph and OpenAI.
     
-    This implements a simple conversational AI that maintains context within a single request.
+    This implements a simple conversational AI that streams responses token-by-token.
     For multi-turn conversations with persistent state, additional session management would be needed.
     """
-    # Invoke the graph with the user's message
-    result = graph.invoke({
-        "messages": [("user", message.message)]
-    })
+    async def generate_stream():
+        """
+        Generator function that streams the response from LangGraph.
+        Uses the 'messages' stream mode to get message updates.
+        """
+        # Stream the graph with the user's message
+        async for event in graph.astream({
+            "messages": [("user", message.message)]
+        }, stream_mode="messages"):
+            # event is a tuple of (message, metadata)
+            # We only want the message content chunks
+            msg, metadata = event
+            
+            # Only stream content from AIMessage (not HumanMessage)
+            if hasattr(msg, 'content') and msg.content:
+                # Stream each chunk as a JSON line
+                chunk_data = {"content": msg.content}
+                yield f"data: {json.dumps(chunk_data)}\n\n"
     
-    # Extract the assistant's response
-    assistant_message = result["messages"][-1].content
-    
-    return ChatResponse(response=assistant_message)
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )
