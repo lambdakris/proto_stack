@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from typing import List
 import os
+import random
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,6 +45,13 @@ class Todo(BaseModel):
     
     class Config:
         orm_mode = True
+
+# Chat Models
+class ChatMessage(BaseModel):
+    message: str
+
+class ChatResponse(BaseModel):
+    response: str
 
 # Note: Tables are now managed by Liquibase migrations
 # Base.metadata.create_all(bind=engine) - Removed in favor of Liquibase
@@ -109,6 +117,52 @@ def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     db.delete(db_todo)
     db.commit()
     return {"message": "Todo deleted successfully"}
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(message: ChatMessage):
+    """
+    Chat endpoint that provides AI assistant responses.
+    This is a stubbed implementation using keyword matching.
+    In a real implementation, this would call an actual LLM API.
+    """
+    user_message = message.message
+    user_lower = user_message.lower()
+    
+    if "hello" in user_lower or "hi" in user_lower:
+        responses = [
+            "Hello! How can I help you today?",
+            "Hi there! What can I do for you?",
+            "Hey! Nice to meet you. What's on your mind?"
+        ]
+    elif "how are you" in user_lower:
+        responses = [
+            "I'm doing great, thank you for asking! How about you?",
+            "I'm functioning well! How can I assist you today?"
+        ]
+    elif "thank" in user_lower:
+        responses = [
+            "You're welcome! Is there anything else I can help with?",
+            "Happy to help! Let me know if you need anything else."
+        ]
+    elif "bye" in user_lower or "goodbye" in user_lower:
+        responses = [
+            "Goodbye! Have a great day!",
+            "See you later! Feel free to come back anytime."
+        ]
+    elif "help" in user_lower:
+        responses = [
+            "I'm here to help! You can ask me questions about the Proto Stack application, or just chat with me.",
+            "I can help with various topics. What would you like to know?"
+        ]
+    else:
+        responses = [
+            f"That's an interesting point about '{user_message}'. Tell me more!",
+            f"I understand you mentioned '{user_message}'. Can you elaborate?",
+            "That's a great question! In a full implementation, I'd provide a detailed response.",
+            "Interesting! I'd love to help with that. This is a demo chatbot, so my responses are limited.",
+        ]
+    
+    return ChatResponse(response=random.choice(responses))
 
 if __name__ == "__main__":
     import uvicorn

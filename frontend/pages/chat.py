@@ -1,6 +1,9 @@
 import streamlit as st
-import random
-import time
+import requests
+import os
+
+# Backend API configuration
+API_BASE_URL = os.getenv("API_BASE_URL", "http://backend:8000")
 
 # Initialize chat history in session state
 def initialize_chat_history():
@@ -16,50 +19,19 @@ def display_chat_messages():
 
 def get_assistant_response(user_message):
     """
-    Stub function to simulate LLM response.
-    In a real implementation, this would call an actual LLM API.
+    Call the backend API to get AI assistant response.
     """
-    # Simulate processing delay
-    time.sleep(0.5)
-    
-    # Stubbed responses based on simple keyword matching
-    user_lower = user_message.lower()
-    
-    if "hello" in user_lower or "hi" in user_lower:
-        responses = [
-            "Hello! How can I help you today?",
-            "Hi there! What can I do for you?",
-            "Hey! Nice to meet you. What's on your mind?"
-        ]
-    elif "how are you" in user_lower:
-        responses = [
-            "I'm doing great, thank you for asking! How about you?",
-            "I'm functioning well! How can I assist you today?"
-        ]
-    elif "thank" in user_lower:
-        responses = [
-            "You're welcome! Is there anything else I can help with?",
-            "Happy to help! Let me know if you need anything else."
-        ]
-    elif "bye" in user_lower or "goodbye" in user_lower:
-        responses = [
-            "Goodbye! Have a great day!",
-            "See you later! Feel free to come back anytime."
-        ]
-    elif "help" in user_lower:
-        responses = [
-            "I'm here to help! You can ask me questions about the Proto Stack application, or just chat with me.",
-            "I can help with various topics. What would you like to know?"
-        ]
-    else:
-        responses = [
-            f"That's an interesting point about '{user_message}'. Tell me more!",
-            f"I understand you mentioned '{user_message}'. Can you elaborate?",
-            "That's a great question! In a full implementation, I'd provide a detailed response.",
-            "Interesting! I'd love to help with that. This is a demo chatbot, so my responses are limited.",
-        ]
-    
-    return random.choice(responses)
+    try:
+        payload = {"message": user_message}
+        response = requests.post(f"{API_BASE_URL}/chat", json=payload)
+        if response.status_code == 200:
+            return response.json()["response"]
+        else:
+            st.error(f"Failed to get response: {response.status_code}")
+            return "I apologize, but I'm having trouble responding right now. Please try again."
+    except requests.exceptions.RequestException as e:
+        st.error(f"Connection error: {e}")
+        return "I apologize, but I'm having trouble connecting to the backend. Please try again."
 
 def handle_user_input():
     """Handle new user input from chat input widget"""
