@@ -19,8 +19,8 @@ venv.bak/
 *.sqlite3
 
 # Environment variables
-.env.local
-.env.production
+.env
+.env.*
 
 # Docker
 .dockerignore
