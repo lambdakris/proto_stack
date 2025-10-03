@@ -26,8 +26,9 @@ class State(TypedDict):
 
 # Initialize the LLM
 llm = ChatOpenAI(
-    model="gpt-4o-mini",
-    api_key=os.getenv("OPENAI_API_KEY"),
+    model="gpt-4.1-mini",
+    base_url=os.environ["OPENAI_BASE_URL"],
+    api_key=os.environ["OPENAI_API_KEY"],
     temperature=0.7
 )
 
