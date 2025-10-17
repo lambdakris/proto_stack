@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# Database migration script using Liquibase
+
+# Database migration script using Flyway
 # Usage: ./scripts/migrate.sh [command]
-# Commands: update, status, rollback-count <count>, validate
+# Commands: migrate, info, validate, undo (not supported in Community), clean
 
-COMMAND=${1:-update}
 
-echo "Running Liquibase migration: $COMMAND"
+COMMAND=${1:-migrate}
+
+echo "Running Flyway migration: $COMMAND"
+
 
 # Ensure PostgreSQL is running
 docker compose up -d postgres
@@ -17,31 +20,26 @@ while ! docker compose exec postgres pg_isready -U postgres >/dev/null 2>&1; do
     sleep 1
 done
 
-echo "PostgreSQL is ready. Running Liquibase $COMMAND..."
+echo "PostgreSQL is ready. Running Flyway $COMMAND..."
 
 case $COMMAND in
-    "update")
-        docker compose run --rm liquibase update
+    "migrate")
+        docker compose run --rm flyway -url=jdbc:postgresql://postgres:5432/postgres -user=postgres -password=postgres migrate
         ;;
-    "status")
-        docker compose run --rm liquibase status
+    "info")
+        docker compose run --rm flyway -url=jdbc:postgresql://postgres:5432/postgres -user=postgres -password=postgres info
         ;;
     "validate")
-        docker compose run --rm liquibase validate
+        docker compose run --rm flyway -url=jdbc:postgresql://postgres:5432/postgres -user=postgres -password=postgres validate
         ;;
-    "rollback-count")
-        if [ -z "$2" ]; then
-            echo "Error: rollback-count requires a count parameter"
-            echo "Usage: ./scripts/migrate.sh rollback-count <count>"
-            exit 1
-        fi
-        docker compose run --rm liquibase rollback-count "$2"
+    "clean")
+        docker compose run --rm flyway -url=jdbc:postgresql://postgres:5432/postgres -user=postgres -password=postgres clean
         ;;
     *)
         echo "Unknown command: $COMMAND"
-        echo "Available commands: update, status, validate, rollback-count <count>"
+        echo "Available commands: migrate, info, validate, clean"
         exit 1
         ;;
 esac
 
-echo "Liquibase $COMMAND completed."
+echo "Flyway $COMMAND completed."
