@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import List
 import os
 from dotenv import load_dotenv
+from routers import chat
 
 load_dotenv()
 
@@ -59,6 +60,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(chat.router)
 
 # Dependency to get DB session
 def get_db():

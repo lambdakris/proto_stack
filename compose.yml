@@ -1,0 +1,83 @@
+volumes:
+  proto_db_volume:
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: proto_db
+      POSTGRES_USER: proto_db_user
+      POSTGRES_PASSWORD: proto_db_password
+    volumes:
+      - proto_db_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30m
+      timeout: 30s
+      retries: 3
+      start_period: 15s
+      start_interval: 1s
+
+  flyway:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: database/Dockerfile
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/proto_db
+      FLYWAY_USER: proto_db_user
+      FLYWAY_PASSWORD: proto_db_password
+  
+  backend:
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    build: 
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://proto_db_user:proto_db_password@postgres:5432/proto_db
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HF_TOKEN: ${HF_TOKEN}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+    ports:
+      - "8000:8000"  # Serving port
+      - "5678:5678"  # Debugging port
+    develop:
+      watch:
+        - path: backend
+          target: /apps/backend
+          action: sync
+    command: uv run -m debugpy --listen 0.0.0.0:5678 -m fastapi dev main.py --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30m
+      timeout: 30s
+      retries: 3
+      start_period: 15s
+      start_interval: 1s
+
+  frontend:
+    depends_on:
+      backend:
+        condition: service_healthy
+    build: 
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      API_BASE_URL: http://backend:8000
+    ports:
+      - "8501:8501"  # Serving port
+      - "5679:5679"  # Debugging port
+    develop:
+      watch:
+        - path: frontend
+          target: /apps/frontend
+          action: sync
+    command: uv run -m debugpy --listen 0.0.0.0:5679 -m streamlit run main.py --server.address 0.0.0.0 --server.port 8501
+

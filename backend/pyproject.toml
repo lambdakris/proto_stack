@@ -14,4 +14,6 @@ dependencies = [
     "debugpy",
     "sqlalchemy>=2.0.43",
     "pydantic>=2.11.9",
+    "langgraph",
+    "langchain-openai",
 ]
